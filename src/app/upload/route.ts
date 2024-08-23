@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import path from "path";
 import { writeFile } from "fs/promises";
 import xlsx from 'node-xlsx';
-
+import { tmpdir } from 'os';
 // Define the POST handler for the file upload
 export const POST = async (req, res) => {
     let exact = []
@@ -38,8 +38,8 @@ export const POST = async (req, res) => {
     console.log(tallyFilename, gstFilename);
 
     try {
-        const tallyFilePath = path.join(process.cwd(), "tmp/" + tallyFilename);
-        const gstFilePath = path.join(process.cwd(), "tmp/" + gstFilename);
+        const tallyFilePath = path.join(tmpdir(), tallyFilename);
+        const gstFilePath = path.join(tmpdir(), gstFilename);
 
 
         // Write the file to the specified directory (public) with the modified filename
