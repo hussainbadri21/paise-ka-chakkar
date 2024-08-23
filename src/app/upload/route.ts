@@ -38,8 +38,8 @@ export const POST = async (req, res) => {
     console.log(tallyFilename, gstFilename);
 
     try {
-        const tallyFilePath = path.join(process.cwd(), "public/" + tallyFilename);
-        const gstFilePath = path.join(process.cwd(), "public/" + gstFilename);
+        const tallyFilePath = path.join(process.cwd(), "tmp/" + tallyFilename);
+        const gstFilePath = path.join(process.cwd(), "tmp/" + gstFilename);
 
 
         // Write the file to the specified directory (public) with the modified filename
