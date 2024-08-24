@@ -99,14 +99,22 @@ export default function Home() {
     )
   }
 
-  const otherColumns = [...columns, {
+  const otherColumns = [...columns,
+  {
+    title: 'Reason',
+    dataIndex: 'reason',
+    key: 'reason',
+    render: (_, record) => <div dangerouslySetInnerHTML={{ __html: record.reason }} />
+  },
+  {
     title: 'Action',
     dataIndex: '',
     key: 'x',
     render: (_, record) => <Popconfirm title={`Are you sure you want to send an email to ${record.gst}?`} onConfirm={() => handleSendEmail(record)}>
       <a>Send Email</a>
     </Popconfirm>
-  },]
+  },
+  ]
 
   return (
     <div className='mx-10'>

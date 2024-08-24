@@ -4,7 +4,9 @@ import path from "path";
 import { writeFile } from "fs/promises";
 import xlsx from 'node-xlsx';
 import { tmpdir } from 'os';
-// Define the POST handler for the file upload
+
+const sanitizeString = (s) => typeof s === 'string' ? parseFloat(s.replace(/,/g, '').replace(/\(/g, '').replace(/\)/g, '')) : s
+
 export const POST = async (req, res) => {
     let exact = []
     let mismatch = []
@@ -41,7 +43,6 @@ export const POST = async (req, res) => {
         const tallyFilePath = path.join(tmpdir(), tallyFilename);
         const gstFilePath = path.join(tmpdir(), gstFilename);
 
-
         // Write the file to the specified directory (public) with the modified filename
         await writeFile(
             tallyFilePath,
@@ -63,10 +64,10 @@ export const POST = async (req, res) => {
             tallyData[`${tallyWorksheet[i][5]}${tallyWorksheet[i][8]}`] = {
                 gst: tallyWorksheet[i][5],
                 inv: tallyWorksheet[i][8],
-                tv: tallyWorksheet[i][10],
-                igst: tallyWorksheet[i][11],
-                cgst: tallyWorksheet[i][12],
-                sgst: tallyWorksheet[i][13],
+                tv: sanitizeString(tallyWorksheet[i][10]),
+                igst: sanitizeString(tallyWorksheet[i][11]),
+                cgst: sanitizeString(tallyWorksheet[i][12]),
+                sgst: sanitizeString(tallyWorksheet[i][13]),
             }
         }
 
@@ -74,16 +75,27 @@ export const POST = async (req, res) => {
             gstData[`${gstWorksheet[i][1]}${gstWorksheet[i][3]}`] = {
                 gst: gstWorksheet[i][1],
                 inv: gstWorksheet[i][3],
-                tv: gstWorksheet[i][9],
-                igst: gstWorksheet[i][10],
-                cgst: gstWorksheet[i][11],
-                sgst: gstWorksheet[i][12],
+                tv: sanitizeString(gstWorksheet[i][9]),
+                igst: sanitizeString(gstWorksheet[i][10]),
+                cgst: sanitizeString(gstWorksheet[i][11]),
+                sgst: sanitizeString(gstWorksheet[i][12]),
             }
         }
 
-        const large = Object.keys(tallyData).length > Object.keys(gstData).length ? tallyData : gstData;
-        const small = Object.keys(tallyData).length < Object.keys(gstData).length ? tallyData : gstData;
+        let large, small, largeName, smallName;
 
+        if (Object.keys(tallyData).length > Object.keys(gstData).length) {
+            large = tallyData
+            small = gstData
+            largeName = "Books of Account"
+            smallName = "GSTR 2B"
+        }
+        else {
+            large = gstData
+            small = tallyData
+            largeName = "GSTR 2B"
+            smallName = "Books of Account"
+        }
 
         for (const key in large) {
             let largeValue = large[key]
@@ -96,6 +108,11 @@ export const POST = async (req, res) => {
                         exact.push(largeValue)
                     }
                     else {
+                        largeValue.reason = `Mismatch of :<br/>
+                        ${smallValue.tv != largeValue.tv ? `Taxable Value: <b>${smallValue.tv}</b> in ${smallName} and <b>${largeValue.tv}</b> in ${largeName}<br/>` : ``}
+                        ${typeof smallValue?.cgst !== 'undefined' && smallValue?.cgst != largeValue?.cgst ? `CGST: <b>${smallValue?.cgst}</b> in ${smallName} and <b>${largeValue?.cgst}</b> in ${largeName}<br/>` : ``}
+                        ${typeof smallValue?.sgst !== 'undefined' && smallValue?.sgst != largeValue?.sgst ? `SGST: <b>${smallValue?.sgst}</b> in ${smallName} and <b>${largeValue?.sgst}</b> in ${largeName}<br/>` : ``}
+                        ${typeof smallValue?.igst !== 'undefined' && smallValue?.igst != largeValue?.igst ? `IGST: <b>${smallValue?.igst}</b> in ${smallName} and <b>${largeValue?.igst}</b> in ${largeName}<br/>` : ``}`
                         mismatch.push(largeValue)
                     }
                     delete small[key]
@@ -105,10 +122,13 @@ export const POST = async (req, res) => {
                 let f = Object.values(small).filter(x => x.gst == largeValue.gst && x.tv == largeValue.tv && ((x.cgst == largeValue.cgst && x.sgst == largeValue.sgst) || x.igst == largeValue.igst))
                 if (f.length > 0) {
                     for (let i = 0; i < f.length; i++) {
+                        f[i].reason = `Mismatch of :<br/> Invoice No : <b>${f[i].inv}</b> in ${smallName} and <b>${largeValue.inv}</b> in ${largeName}<br/>`;
                         approx.push(f[i])
                     }
+                    delete small[key]
                 }
                 else {
+                    largeValue.reason = `Not found in ${smallName}`
                     not_found.push(largeValue)
                 }
 
