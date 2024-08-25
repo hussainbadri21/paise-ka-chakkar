@@ -1,11 +1,12 @@
 'use client'
-import { Button, message, Upload, Table, Popconfirm } from 'antd';
+import { Button, message, Upload, Table, Popconfirm, Typography } from 'antd';
 import Image from "next/image";
 import { UploadOutlined } from '@ant-design/icons';
 import { useState } from "react";
 import axios from 'axios';
 import { exportToExcel } from 'react-json-to-excel';
 
+const { Text } = Typography;
 
 export default function Home() {
   const [gstFileList, setGstFileList] = useState([]);
@@ -57,8 +58,37 @@ export default function Home() {
     }
   };
 
-  const handleDownload = () => {
+  const localizeCurrency = (s) => s ? `₹ ${s.toLocaleString('en-IN')}` : '0'
+
+  const tableSummary = data => {
+    if (!data || data.length === 0)
+      return null;
+    let cgstTotal = data.reduce((total, item) => total + item.cgst, 0);
+    let sgstTotal = data.reduce((total, item) => total + item.sgst, 0);
+    let igstTotal = data.reduce((total, item) => total + item.igst, 0);
+    let taxableValueTotal = data.reduce((total, item) => total + item.tv, 0);
+
+    return (
+      <>
+        <Table.Summary.Row>
+          <Table.Summary.Cell index={0} colSpan={2}>Total</Table.Summary.Cell>
+          <Table.Summary.Cell index={1}>
+            <Text>{localizeCurrency(taxableValueTotal)}</Text>
+          </Table.Summary.Cell>
+          <Table.Summary.Cell index={2}>
+            <Text>{localizeCurrency(igstTotal)}</Text>
+          </Table.Summary.Cell>
+          <Table.Summary.Cell index={3}>
+            <Text>{localizeCurrency(sgstTotal)}</Text>
+          </Table.Summary.Cell>
+          <Table.Summary.Cell index={4}>
+            <Text>{localizeCurrency(cgstTotal)}</Text>
+          </Table.Summary.Cell>
+        </Table.Summary.Row>
+      </>
+    )
   }
+
 
   const columns = [
     {
@@ -75,28 +105,33 @@ export default function Home() {
       title: 'Taxable Value',
       dataIndex: 'tv',
       key: 'tv',
+      render: (_, record) => localizeCurrency(record.tv),
+      sorter: (a, b) => b.tv - a.tv,
     },
     {
       title: 'IGST',
       dataIndex: 'igst',
       key: 'igst',
+      render: (_, record) => localizeCurrency(record.igst),
     },
     {
       title: 'SGST',
       dataIndex: 'sgst',
       key: 'sgst',
+      render: (_, record) => localizeCurrency(record.sgst),
     },
     {
       title: 'CGST',
       dataIndex: 'cgst',
       key: 'cgst',
+      render: (_, record) => localizeCurrency(record.cgst),
     },
 
   ];
 
-  const handleSendEmail = (record) => {
-    setTimeout(() => message.success(`Email successfully sen to ${record.gst}`), 1000
-    )
+  const handleSendEmail = async (record) => {
+    await axios.post('/send-mail', record);
+    message.success(`Email successfully sent to ${record.gst}`)
   }
 
   const otherColumns = [...columns,
@@ -180,19 +215,19 @@ export default function Home() {
       </div>
       <>
         <div>Exact Match</div>
-        {tableData && <Table dataSource={tableData.exact} columns={columns} />}
+        {tableData && <Table summary={() => tableSummary(tableData.exact)} dataSource={tableData.exact} columns={columns} />}
       </>
       <>
         <div>Approx Match</div>
-        {tableData && <Table dataSource={tableData.approx} columns={otherColumns} />}
+        {tableData && <Table summary={() => tableSummary(tableData.approx)} dataSource={tableData.approx} columns={otherColumns} />}
       </>
       <>
         <div>Mismatch</div>
-        {tableData && <Table dataSource={tableData.mismatch} columns={otherColumns} />}
+        {tableData && <Table summary={() => tableSummary(tableData.mismatch)} dataSource={tableData.mismatch} columns={otherColumns} />}
       </>
       <>
         <div>Not Found</div>
-        {tableData && <Table dataSource={tableData.not_found} columns={otherColumns} />}
+        {tableData && <Table summary={() => tableSummary(tableData.not_found)} dataSource={tableData.not_found} columns={otherColumns} />}
       </>
     </div>
   );
