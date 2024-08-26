@@ -5,7 +5,7 @@ import { writeFile } from "fs/promises";
 import xlsx from 'node-xlsx';
 import { tmpdir } from 'os';
 
-const sanitizeString = (s) => typeof s === 'string' ? parseFloat(s.replace(/,/g, '').replace(/\(/g, '').replace(/\)/g, '')) : s
+const sanitizeString = (s) => typeof s === 'number' ? Math.round(s) : typeof s === 'string' ? Math.round(parseFloat(s.replace(/,/g, '').replace(/\(/g, '').replace(/\)/g, ''))) : s
 
 export const POST = async (req, res) => {
     let exact = []
@@ -72,13 +72,15 @@ export const POST = async (req, res) => {
         }
 
         for (let i = 1; i < gstWorksheet.length; i++) {
-            gstData[`${gstWorksheet[i][1]}${gstWorksheet[i][3]}`] = {
-                gst: gstWorksheet[i][1],
-                inv: gstWorksheet[i][3],
-                tv: sanitizeString(gstWorksheet[i][9]),
-                igst: sanitizeString(gstWorksheet[i][10]),
-                cgst: sanitizeString(gstWorksheet[i][11]),
-                sgst: sanitizeString(gstWorksheet[i][12]),
+            if (gstWorksheet[i][14] === 'Yes' && gstWorksheet[i][7] === 'No') {
+                gstData[`${gstWorksheet[i][1]}${gstWorksheet[i][3]}`] = {
+                    gst: gstWorksheet[i][1],
+                    inv: gstWorksheet[i][3],
+                    tv: sanitizeString(gstWorksheet[i][9]),
+                    igst: sanitizeString(gstWorksheet[i][10]),
+                    cgst: sanitizeString(gstWorksheet[i][11]),
+                    sgst: sanitizeString(gstWorksheet[i][12]),
+                }
             }
         }
 
