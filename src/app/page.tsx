@@ -63,10 +63,11 @@ export default function Home() {
   const tableSummary = data => {
     if (!data || data.length === 0)
       return null;
-    let cgstTotal = data.reduce((total, item) => total + item.cgst, 0);
-    let sgstTotal = data.reduce((total, item) => total + item.sgst, 0);
-    let igstTotal = data.reduce((total, item) => total + item.igst, 0);
-    let taxableValueTotal = data.reduce((total, item) => total + item.tv, 0);
+    console.log('assasa', data)
+    let cgstTotal = data.reduce((total, item) => total + (typeof item.cgst !== 'undefined' ? item.cgst : 0), 0);
+    let sgstTotal = data.reduce((total, item) => total + (typeof item.sgst !== 'undefined' ? item.sgst : 0), 0);
+    let igstTotal = data.reduce((total, item) => total + (typeof item.igst !== 'undefined' ? item.igst : 0), 0);
+    let taxableValueTotal = data.reduce((total, item) => total + (typeof item.tv !== 'undefined' ? item.tv : 0), 0);
 
     return (
       <>
@@ -92,7 +93,7 @@ export default function Home() {
 
   const columns = [
     {
-      title: 'Name',
+      title: 'Vendor Name',
       dataIndex: 'name',
       key: 'name',
     },
