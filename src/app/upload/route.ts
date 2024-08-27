@@ -37,8 +37,6 @@ export const POST = async (req, res) => {
     const tallyFilename = tallyFile.name.replaceAll(" ", "_");
     const gstFilename = gstFile.name.replaceAll(" ", "_");
 
-    console.log(tallyFilename, gstFilename);
-
     try {
         const tallyFilePath = path.join(tmpdir(), tallyFilename);
         const gstFilePath = path.join(tmpdir(), gstFilename);
@@ -54,8 +52,8 @@ export const POST = async (req, res) => {
         );
 
         // Parse the Excel file using node-xlsx
-        const tallyWorksheet = xlsx.parse(tallyFilePath)?.[0]?.data;
-        const gstWorksheet = xlsx.parse(gstFilePath)?.[0]?.data;
+        const tallyWorksheet = xlsx.parse(tallyFilePath, { cellDates: true })?.[0]?.data;
+        const gstWorksheet = xlsx.parse(gstFilePath, { cellDates: true })?.[0]?.data;
 
         let tallyData = {}
         let gstData = {};
@@ -68,18 +66,22 @@ export const POST = async (req, res) => {
                 igst: sanitizeString(tallyWorksheet[i][11]),
                 cgst: sanitizeString(tallyWorksheet[i][12]),
                 sgst: sanitizeString(tallyWorksheet[i][13]),
+                name: tallyWorksheet[i][6],
+                inv_date: tallyWorksheet[i][9]
             }
         }
 
         for (let i = 1; i < gstWorksheet.length; i++) {
-            if (gstWorksheet[i][14] === 'Yes' && gstWorksheet[i][7] === 'No') {
+            if (gstWorksheet[i][17] === 'Yes' && gstWorksheet[i][8] === 'No') {
                 gstData[`${gstWorksheet[i][1]}${gstWorksheet[i][3]}`] = {
                     gst: gstWorksheet[i][1],
                     inv: gstWorksheet[i][3],
-                    tv: sanitizeString(gstWorksheet[i][9]),
-                    igst: sanitizeString(gstWorksheet[i][10]),
-                    cgst: sanitizeString(gstWorksheet[i][11]),
-                    sgst: sanitizeString(gstWorksheet[i][12]),
+                    tv: sanitizeString(gstWorksheet[i][10]),
+                    igst: sanitizeString(gstWorksheet[i][11]),
+                    cgst: sanitizeString(gstWorksheet[i][12]),
+                    sgst: sanitizeString(gstWorksheet[i][13]),
+                    name: gstWorksheet[i][2],
+                    inv_date: gstWorksheet[i][5]
                 }
             }
         }
@@ -136,6 +138,11 @@ export const POST = async (req, res) => {
 
             }
 
+        }
+        for (const key in small) {
+            let value = small[key]
+            value.reason = `Not found in ${largeName}`
+            not_found.push(value)
         }
 
 

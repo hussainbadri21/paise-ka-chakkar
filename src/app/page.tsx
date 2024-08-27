@@ -71,7 +71,7 @@ export default function Home() {
     return (
       <>
         <Table.Summary.Row>
-          <Table.Summary.Cell index={0} colSpan={2}>Total</Table.Summary.Cell>
+          <Table.Summary.Cell index={0} colSpan={4}>Total</Table.Summary.Cell>
           <Table.Summary.Cell index={1}>
             <Text>{localizeCurrency(taxableValueTotal)}</Text>
           </Table.Summary.Cell>
@@ -92,6 +92,11 @@ export default function Home() {
 
   const columns = [
     {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
       title: 'GSTIN',
       dataIndex: 'gst',
       key: 'gst',
@@ -100,6 +105,11 @@ export default function Home() {
       title: 'Invoie No.',
       dataIndex: 'inv',
       key: 'inv',
+    },
+    {
+      title: 'Invoie Date',
+      dataIndex: 'inv_date',
+      key: 'inv_date',
     },
     {
       title: 'Taxable Value',
