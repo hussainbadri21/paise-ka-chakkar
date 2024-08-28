@@ -204,13 +204,13 @@ export default function Home() {
       ...getColumnSearchProps('gst'),
     },
     {
-      title: 'Invoie No.',
+      title: 'Invoice No.',
       dataIndex: 'inv',
       key: 'inv',
       ...getColumnSearchProps('inv'),
     },
     {
-      title: 'Invoie Date',
+      title: 'Invoice Date',
       dataIndex: 'inv_date',
       key: 'inv_date',
     },

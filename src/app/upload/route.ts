@@ -6,7 +6,7 @@ import xlsx from 'node-xlsx';
 import { tmpdir } from 'os';
 var moment = require('moment');
 
-const sanitizeString = (s) => typeof s === 'number' ? Math.round(s) : typeof s === 'string' ? Math.round(parseFloat(s.replace(/,/g, '').replace(/\(/g, '').replace(/\)/g, ''))) : s
+const sanitizeString = (s) => typeof s === 'undefined' ? 0 : typeof s === 'number' ? Math.round(s) : typeof s === 'string' ? Math.round(parseFloat(s.replace(/,/g, '').replace(/\(/g, '').replace(/\)/g, ''))) : s
 
 const parseDate = (d) => typeof d === 'string' ? moment(d, 'DD/MM/YYYY').format('DD/MM/YYYY') : moment(d).format('DD/MM/YYYY');
 
@@ -112,7 +112,7 @@ export const POST = async (req, res) => {
 
             if (typeof smallValue !== 'undefined') {
                 if (smallValue.gst == largeValue.gst && smallValue.inv == largeValue.inv) {
-                    if ((smallValue.cgst == largeValue.cgst && smallValue.sgst == largeValue.sgst) || smallValue.igst == largeValue.igst) {
+                    if ((smallValue.cgst == largeValue.cgst && smallValue.sgst == largeValue.sgst && smallValue.sgst != 0 && smallValue.cgst != 0) || (smallValue.igst == largeValue.igst && smallValue.igst != 0)) {
                         exact.push(largeValue)
                     }
                     else {
@@ -127,7 +127,7 @@ export const POST = async (req, res) => {
                 }
             }
             else {
-                let f = Object.values(small).filter(x => x.gst == largeValue.gst && x.tv == largeValue.tv && x.inv_date === largeValue.inv_date && ((x.cgst == largeValue.cgst && x.sgst == largeValue.sgst) || x.igst == largeValue.igst))
+                let f = Object.values(small).filter(x => x.gst == largeValue.gst && x.tv == largeValue.tv && x.inv_date === largeValue.inv_date && ((x.cgst == largeValue.cgst && x.sgst == largeValue.sgst && x.sgst != 0 && x.cgst != 0) || (x.igst == largeValue.igst && x.igst != 0)))
                 if (f.length > 0) {
                     for (let i = 0; i < f.length; i++) {
                         f[i].reason = `Mismatch of :<br/> Invoice No : <b>${f[i].inv}</b> in ${smallName} and <b>${largeValue.inv}</b> in ${largeName}<br/>`;
