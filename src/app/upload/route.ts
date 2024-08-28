@@ -130,10 +130,12 @@ export const POST = async (req, res) => {
                 let f = Object.values(small).filter(x => x.gst == largeValue.gst && x.tv == largeValue.tv && x.inv_date === largeValue.inv_date && ((x.cgst == largeValue.cgst && x.sgst == largeValue.sgst && x.sgst != 0 && x.cgst != 0) || (x.igst == largeValue.igst && x.igst != 0)))
                 if (f.length > 0) {
                     for (let i = 0; i < f.length; i++) {
-                        f[i].reason = `Mismatch of :<br/> Invoice No : <b>${f[i].inv}</b> in ${smallName} and <b>${largeValue.inv}</b> in ${largeName}<br/>`;
-                        approx.push(f[i])
+                        let x = { ...f[i] }
+                        x.reason = `Mismatch of :<br/> Invoice No : <b>${f[i].inv}</b> in ${smallName} and <b>${largeValue.inv}</b> in ${largeName}<br/>`;
+                        approx.push(x)
                     }
                     delete small[key]
+                    delete large[key]
                 }
                 else {
                     largeValue.reason = `Not found in ${smallName}`
